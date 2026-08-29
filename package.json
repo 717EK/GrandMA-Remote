@@ -1,6 +1,14 @@
 {
-  "name":"tds-gma3-bridge",
-  "private":true,
-  "scripts":{"start":"node server.js"},
-  "dependencies":{"express":"^4.21.2","osc":"^2.4.5","ws":"^8.18.0"}
+  "name": "tds-gma3-vercel-bridge",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.35.3",
+    "express": "^4.21.2",
+    "osc": "^2.4.5"
+  }
 }
