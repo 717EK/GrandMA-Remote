@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TDS gMA3 Phone Test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:720px;margin:auto;padding:18px}.card{background:#1b1b1b;border:1px solid #333;border-radius:14px;padding:16px;margin-bottom:14px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:16px;margin:0 0 12px}
+label{display:block;font-size:13px;color:#aaa;margin:10px 0 5px}
+input,button{width:100%;min-height:46px;border-radius:10px;border:1px solid #444;background:#222;color:#fff;padding:10px;font-size:16px}
+button{background:#333;font-weight:600;margin-top:8px}button:active{transform:scale(.99)}
+.status{display:flex;align-items:center;gap:8px}.dot{width:10px;height:10px;border-radius:50%;background:#777}.ok{background:#32d74b}
+pre{white-space:pre-wrap;word-break:break-word;background:#0b0b0b;border-radius:10px;padding:10px;min-height:90px;font-size:12px}
+.small{color:#999;font-size:12px;line-height:1.4}
+</style>
+</head>
+<body>
+<main>
+<div class="card">
+<h1>TDS gMA3 Phone Test</h1>
+<div class="small">First experiment: connect to the native grandMA3 Web Remote and inspect communication.</div>
+<label>grandMA3 IP address</label>
+<input id="ip" placeholder="192.168.1.50" inputmode="decimal">
+<button onclick="connect()">Connect / Open Web Remote</button>
+<div class="status" style="margin-top:12px"><span id="dot" class="dot"></span><span id="status">Not connected</span></div>
+</div>
+
+<div class="card">
+<h2>WebSocket test</h2>
+<button onclick="testWs()">Test WebSocket :8080</button>
+<div class="small">This does not send a control command yet. It only tests whether a WebSocket connection can be opened.</div>
+</div>
+
+<div class="card">
+<h2>Native Web Remote</h2>
+<button onclick="openRemote()">Open grandMA3 Web Remote</button>
+</div>
+
+<div class="card">
+<h2>Debug</h2>
+<pre id="log">Ready.</pre>
+</div>
+</main>
+<script>
+let ws=null;
+const $=id=>document.getElementById(id);
+function log(s){$("log").textContent += "\\n"+s}
+function setStatus(s,ok=false){$("status").textContent=s;$("dot").className="dot"+(ok?" ok":"")}
+function getIp(){let ip=$("ip").value.trim();if(!ip){alert("Enter the grandMA3 IP address.");throw 0}return ip}
+function connect(){const ip=getIp();localStorage.setItem("gma3ip",ip);openRemote()}
+function openRemote(){const ip=getIp();window.open("http://"+ip+":8080/","_blank");setStatus("Opened native Web Remote")}
+function testWs(){
+ const ip=getIp(); if(ws){try{ws.close()}catch(e){}}
+ setStatus("Connecting to ws://"+ip+":8080/");
+ log("Opening WebSocket...");
+ try{
+   ws=new WebSocket("ws://"+ip+":8080/");
+   ws.onopen=()=>{setStatus("WebSocket connected",true);log("WebSocket OPEN")}
+   ws.onmessage=e=>{log("RX: "+(typeof e.data==="string"?e.data:"[binary data]"))}
+   ws.onerror=e=>{setStatus("WebSocket error");log("WebSocket ERROR")}
+   ws.onclose=e=>{setStatus("WebSocket closed");log("WebSocket CLOSED code="+e.code+" reason="+e.reason)}
+ }catch(e){setStatus("WebSocket failed");log("Exception: "+e)}
+}
+$("ip").value=localStorage.getItem("gma3ip")||"";
+</script>
+</body>
+</html>
