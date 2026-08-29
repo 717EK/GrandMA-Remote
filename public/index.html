@@ -1,0 +1,39 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TDS gMA3 Show</title>
+<style>
+body{margin:0;background:#101010;color:#eee;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:16px;background:#181818;position:sticky;top:0;border-bottom:1px solid #333}
+h1{font-size:20px;margin:0 0 4px}.sub{color:#999;font-size:12px}
+main{padding:12px;max-width:700px;margin:auto}.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.card h2{font-size:15px;margin:0;padding:12px;border-bottom:1px solid #333}
+.row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #292929}.row:last-child{border:0}
+.name{flex:1}.addr{display:block;color:#888;font-size:11px;margin-top:2px}
+button{border:1px solid #555;background:#292929;color:#fff;border-radius:8px;padding:8px 12px;font-weight:600}
+#status{font-size:12px;color:#aaa}
+</style></head><body>
+<header><h1>TDS • gMA3 SHOW</h1><div id="status">Connecting…</div></header>
+<main>
+<div class="card"><h2>Fixtures <span id="fc"></span></h2><div id="fixtures"></div></div>
+<div class="card"><h2>Groups</h2><div id="groups"></div></div>
+<div class="card"><h2>Sequences</h2><div id="seq"></div></div>
+</main>
+<script>
+let show={fixtures:[],groups:[],sequences:[]};
+function render(){
+ document.getElementById("fc").textContent=show.fixtureCount?`(${show.fixtureCount})`:"";
+ document.getElementById("fixtures").innerHTML=show.fixtures.map(f=>`
+ <div class="row"><div class="name">${esc(f.name||("Fixture "+f.index))}<span class="addr">${esc(f.address||"")}</span></div>
+ <button onclick="setFx(${f.index},'on')">ON</button><button onclick="setFx(${f.index},'off')">OFF</button></div>`).join("")||"<div class=row>No fixture data yet.</div>";
+ document.getElementById("groups").innerHTML=show.groups.map(x=>`<div class=row><div class=name>${esc(x.name||("Group "+x.index))}</div></div>`).join("")||"<div class=row>No groups.</div>";
+ document.getElementById("seq").innerHTML=show.sequences.map(x=>`<div class=row><div class=name>${esc(x.name||("Sequence "+x.index))}</div></div>`).join("")||"<div class=row>No sequences.</div>";
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function setFx(id,state){ws.send(JSON.stringify({type:"fixture",id,state}));}
+const ws=new WebSocket(`ws://${location.host}`);
+ws.onopen=()=>document.getElementById("status").textContent="Bridge connected";
+ws.onclose=()=>document.getElementById("status").textContent="Bridge disconnected";
+ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="show"){show=m.data;render()}};
+fetch("/api/show").then(r=>r.json()).then(x=>{show=x;render()});
+render();
+</script></body></html>

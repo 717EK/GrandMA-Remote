@@ -1,0 +1,6 @@
+{
+  "name":"tds-gma3-bridge",
+  "private":true,
+  "scripts":{"start":"node server.js"},
+  "dependencies":{"express":"^4.21.2","osc":"^2.4.5","ws":"^8.18.0"}
+}
